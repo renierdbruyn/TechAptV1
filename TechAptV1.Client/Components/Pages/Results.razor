@@ -1,6 +1,8 @@
 ﻿@page "/results"
 @using TechAptV1.Client.Models
 @using TechAptV1.Client.Services
+@using System.IO
+@inject IJSRuntime JS
 
 <h3>Results</h3>
 <p>The table shows the top N numbers generated. The download XML and Binary feature allows you to download the entire data set</p>
@@ -33,6 +35,7 @@
 
     [Inject] public required ILogger<Threading> Logger { get; set; }
     [Inject] public required DataService _dataService { get; set; }
+    [Inject] public required ExportService _exportService { get; set; }
 
     private List<Number> numbers = new ();
 
@@ -42,7 +45,19 @@
     private async Task DownloadXml()
     {
         this.Logger.LogInformation("DownloadXml");
-        throw new NotImplementedException();
+        var bytes = _exportService.GetXmLBytes();
+        var stream = GetFileStream(bytes);
+        using var streamRef = new DotNetStreamReference(stream: stream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", "Numbers.Xml", streamRef);
+        // return File(bytes, "text/xml", "");
+    }
+
+    private Stream GetFileStream(byte[] bytes)
+    {
+        var fileStream = new MemoryStream(bytes);
+
+        return fileStream;
     }
 
     /// <summary>
@@ -60,3 +75,18 @@
     }
 
 }
+
+<script>
+    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+      const arrayBuffer = await contentStreamReference.arrayBuffer();
+      const blob = new Blob([arrayBuffer]);
+      const url = URL.createObjectURL(blob);
+      const anchorElement = document.createElement('a');
+      anchorElement.href = url;
+      anchorElement.download = fileName ?? '';
+      anchorElement.click();
+      anchorElement.remove();
+      URL.revokeObjectURL(url);
+    }
+</script>
+

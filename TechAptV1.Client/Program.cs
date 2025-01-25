@@ -25,6 +25,7 @@ namespace TechAptV1.Client
                 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
                 builder.Services.AddSingleton<ThreadingService>();
                 builder.Services.AddSingleton<DataService>();
+                builder.Services.AddSingleton<ExportService>();
                 SQLiteTools.InitDb();
                 var app = builder.Build();
 
