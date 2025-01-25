@@ -1,4 +1,6 @@
 ﻿@page "/threading"
+@implements IDisposable
+@using TechAptV1.Client.Services
 
 <h3>Threading &amp; Data Persistence</h3>
 
@@ -21,16 +23,20 @@
 @code {
 
     [Inject] public required ILogger<Threading> Logger { get; set; }
+    [Inject] public required ThreadingService _threadingService { get; set; }
 
     private int _oddNumbers = 0;
     private int _evenNumbers = 0;
     private int _primeNumbers = 0;
     private int _totalNumbers = 0;
 
+
+    private System.Threading.Timer timer;
     private async Task Start()
     {
         this.Logger.LogInformation("Start");
-        throw new NotImplementedException();
+
+        await _threadingService.Start();
     }
 
     private async Task Save()
@@ -38,5 +44,34 @@
         this.Logger.LogInformation("Save");
         throw new NotImplementedException();
     }
+
+    private void updateNumbers()
+    {
+        _oddNumbers = _threadingService.GetOddNumbers();
+        _evenNumbers = _threadingService.GetEvenNumbers();
+        _primeNumbers = _threadingService.GetPrimeNumbers();
+        _totalNumbers = _threadingService.GetTotalNumbers();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        timer = new System.Threading.Timer(
+            async _ =>
+            {
+                updateNumbers();
+                await InvokeAsync(StateHasChanged);
+            },
+            null,
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(2)
+        );
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+
+
 
 }
