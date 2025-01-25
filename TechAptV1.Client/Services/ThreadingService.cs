@@ -24,7 +24,6 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
     public bool _startedProcessing = false;
     [CascadingParameter]
     private List<Number> _numbersList { get; set; } = new();
-    //private List<int> _numbersList { get; set; } = new();
 
     [ThreadStatic]
     private static Random _random = new();
@@ -55,18 +54,12 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
 
             while (true)
             {
-                //lock (_lock)
-                //{
-                //mut.WaitOne();
                 if (_numbersList.Count >= _evenStart)
                 {
                     logger.LogInformation($"Even Numbers has started generating");
                     logger.LogDebug($"_numbersList.Count: {_numbersList.Count}");
                     break;
                 }
-                //mut.ReleaseMutex();
-
-                //}
             }
             var EvenRng = new Thread(new ThreadStart(GenerateRandomEvenNumbers));
             EvenRng.Start();
@@ -111,8 +104,6 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
 
         while (_numbersList.Count < _stopLimit)
         {
-            //lock (_lock)
-            //{
             mut.WaitOne();
             try
             {
@@ -121,15 +112,11 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
                 _numbersList.Add(new() { Value = randomNumber, IsPrime = IsPrime(randomNumber) });
                 _oddNumbers++;
                 _totalNumbers++;
-                //if (randomNumber % 2 == 1)
-                //{
-                //}
             }
             finally
             {
                 mut.ReleaseMutex();
             }
-            //}
         }
     }
 
@@ -142,24 +129,17 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
             mut.WaitOne();
             try
             {
-                //lock (_lock)
-                //{
                 if (_numbersList.Count >= _stopLimit) { break; }
 
                 int randomNumber = _random.Next(_stopLimit / 2) * 2;
                 _numbersList.Add(new() { Value = randomNumber, IsPrime = IsPrime(randomNumber) });
                 _evenNumbers++;
                 _totalNumbers++;
-                //if (randomNumber % 2 == 0)
-                //{
-                //}
             }
             finally
             {
                 mut.ReleaseMutex();
             }
-            //}
-
         }
     }
 
@@ -169,8 +149,6 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
 
         while (_numbersList.Count < _stopLimit)
         {
-            //lock (_lock)
-            //{
             mut.WaitOne();
             try
             {
@@ -187,7 +165,6 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
             {
                 mut.ReleaseMutex();
             }
-            //}
         }
     }
 
@@ -206,8 +183,9 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
         while (i <= boundary)
         {
             if (number % (i + 1) == 0 || number % (i + 5) == 0)
+            {
                 return false;
-
+            }
             i += 6;
         }
 
