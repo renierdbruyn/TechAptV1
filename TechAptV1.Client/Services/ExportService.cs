@@ -1,6 +1,9 @@
 ﻿// Copyright © 2025 Always Active Technologies PTY Ltd
 
+using System;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.Json;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -15,7 +18,10 @@ namespace TechAptV1.Client.Services
         {
             _dataService = dataService;
         }
-
+        /// <summary>
+        /// Fetches all data from the numbers table and serialized it as xml.
+        /// </summary>
+        /// <returns></returns>
         public byte[] GetXmLBytes()
         {
             var data = _dataService.GetAll();
@@ -29,10 +35,14 @@ namespace TechAptV1.Client.Services
             using (var stream = new StringWriter())
             {
                 serializer.Serialize(stream, data);
-                System.Console.Write(stream.ToString());
-            byte[] bytes = Encoding.Default.GetBytes(stream.ToString());
-            return bytes;
+                return Encoding.Default.GetBytes(stream.ToString());
             }
+        }
+
+        public byte[] GetBinBytes()
+        {
+            var data = _dataService.GetAll();
+            return JsonSerializer.SerializeToUtf8Bytes(data);
         }
     }
 }

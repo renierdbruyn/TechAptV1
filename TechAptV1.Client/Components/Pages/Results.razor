@@ -50,7 +50,6 @@
         using var streamRef = new DotNetStreamReference(stream: stream);
 
         await JS.InvokeVoidAsync("downloadFileFromStream", "Numbers.Xml", streamRef);
-        // return File(bytes, "text/xml", "");
     }
 
     private Stream GetFileStream(byte[] bytes)
@@ -66,7 +65,11 @@
     private async Task DownloadBinary()
     {
         this.Logger.LogInformation("DownloadBinary");
-        throw new NotImplementedException();
+        var bytes = _exportService.GetBinBytes();
+        var stream = GetFileStream(bytes);
+        using var streamRef = new DotNetStreamReference(stream: stream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", "Numbers.bin", streamRef);
     }
 
     protected override async Task OnInitializedAsync()
