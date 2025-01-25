@@ -12,19 +12,19 @@
 <div>
     <table class="table">
         <thead>
-        <tr>
-            <th>Value</th>
-            <th>IsPrime</th>
-        </tr>
+            <tr>
+                <th>Value</th>
+                <th>IsPrime</th>
+            </tr>
         </thead>
         <tbody>
-        @foreach (var item in this.numbers)
-        {
-            <tr>
-                <td>@item.Value</td>
-                <td>@item.IsPrime</td>
-            </tr>
-        }
+            @foreach (var item in this.numbers)
+            {
+                <tr>
+                    <td>@item.Value</td>
+                    <td>@item.IsPrime</td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>
@@ -32,6 +32,7 @@
 @code {
 
     [Inject] public required ILogger<Threading> Logger { get; set; }
+    [Inject] public required DataService _dataService { get; set; }
 
     private List<Number> numbers = new ();
 
@@ -51,6 +52,11 @@
     {
         this.Logger.LogInformation("DownloadBinary");
         throw new NotImplementedException();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        numbers = _dataService.Get(20).ToList();
     }
 
 }

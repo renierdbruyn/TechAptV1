@@ -24,9 +24,10 @@
 
     [Inject] public required ILogger<Threading> Logger { get; set; }
     [Inject] public required ThreadingService _threadingService { get; set; }
+    [Inject] public required DataService _dataService { get; set; }
 
     private bool IsStartDisabled =>  _threadingService._startedProcessing;
-    private bool IsSaveDisabled => _totalNumbers <= _threadingService._stopLimit;
+    private bool IsSaveDisabled => _totalNumbers < _threadingService._stopLimit || _dataService.IsSaving();
     private int _oddNumbers = 0;
     private int _evenNumbers = 0;
     private int _primeNumbers = 0;
@@ -43,11 +44,12 @@
 
     private async Task Save()
     {
+            
         this.Logger.LogInformation("Save");
-        throw new NotImplementedException();
+        await _dataService.Save(_threadingService._numbersList);
     }
 
-    private void updateNumbers()
+    private void UpdateNumbers()
     {
         _oddNumbers = _threadingService.GetOddNumbers();
         _evenNumbers = _threadingService.GetEvenNumbers();
@@ -60,7 +62,7 @@
         timer = new System.Threading.Timer(
             async _ =>
             {
-                updateNumbers();
+                UpdateNumbers();
                 await InvokeAsync(StateHasChanged);
             },
             null,
