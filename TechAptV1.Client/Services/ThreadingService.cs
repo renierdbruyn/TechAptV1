@@ -18,8 +18,10 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
     private int _evenNumbers = 0;
     private int _primeNumbers = 0;
     private int _totalNumbers = 0;
+
     public int _stopLimit = 200_000; //10_000_000
     public int _evenStart = 50_000; //2_500_000
+    public bool _startedProcessing = false;
     [CascadingParameter]
     public List<Number> _numbersList { get; set; } = new();
     //private List<int> _numbersList { get; set; } = new();
@@ -41,6 +43,7 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
     public async Task Start()
     {
         logger.LogInformation("Start");
+        _startedProcessing = true;
         var OddRng = new Thread(new ThreadStart(GenerateRandomOddNumbers));
         var PrimeRng = new Thread(new ThreadStart(GeneratePrimeNumbers));
         ThreadPool.QueueUserWorkItem((state) =>
@@ -69,11 +72,14 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
             logger.LogDebug($"_numbersList.Count: {_numbersList.Count}");
         });
 
-
+        SortNumberList();
         return;
     }
 
-
+    private void SortNumberList()
+    {
+        _numbersList.OrderBy(x => x.Value);
+    }
     private static void EnsureRandomInstantiated()
     {
         if (_random == null)
@@ -166,15 +172,4 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
         }
         return false;
     }
-
-
 }
-
-
-//public static class Rand
-//{
-//    [ThreadStatic] private static Rand defaultRand;
-//    public static Rand Default => defaultRand ??= new Rand();
-//    // Add extra methods for seeding the static instance...
-//}
-

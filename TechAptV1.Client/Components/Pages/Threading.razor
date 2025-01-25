@@ -5,8 +5,8 @@
 <h3>Threading &amp; Data Persistence</h3>
 
 <div>
-    <button class="btn btn-primary" @onclick="(async () => await this.Start())">Start</button>
-    <button class="btn btn-primary" @onclick="(async () => await this.Save())">Save</button>
+    <button class="btn btn-primary" disabled="@IsStartDisabled" @onclick="(async () => await this.Start())">Start</button>
+    <button class="btn btn-primary" disabled="@IsSaveDisabled" @onclick="(async () => await this.Save())">Save</button>
 </div>
 <div>
     <hr>
@@ -25,6 +25,8 @@
     [Inject] public required ILogger<Threading> Logger { get; set; }
     [Inject] public required ThreadingService _threadingService { get; set; }
 
+    private bool IsStartDisabled =>  _threadingService._startedProcessing;
+    private bool IsSaveDisabled => _totalNumbers <= _threadingService._stopLimit;
     private int _oddNumbers = 0;
     private int _evenNumbers = 0;
     private int _primeNumbers = 0;
