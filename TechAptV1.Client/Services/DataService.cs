@@ -1,6 +1,7 @@
 ﻿// Copyright © 2025 Always Active Technologies PTY Ltd
 
 using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using TechAptV1.Client.Models;
 
 namespace TechAptV1.Client.Services;
@@ -25,7 +26,8 @@ public sealed class DataService
     {
         this._logger = logger;
         this._configuration = configuration;
-        sqlite = new SQLiteConnection("Data Source=NumbersDb.sqlite;Version=3;");
+        var connectionString = new SqliteConnectionStringBuilder(configuration.GetConnectionString("Default")).ToString();
+        sqlite = new SQLiteConnection(connectionString);
     }
 
     public bool IsSaving() => _isSaving;

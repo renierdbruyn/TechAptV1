@@ -1,21 +1,21 @@
 ﻿// Copyright © 2025 Always Active Technologies PTY Ltd
 
 using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 
 namespace TechAptV1.Client.Utilities
 {
     public static class SQLiteTools
     {
 
-        public static void InitDb()
+        public static void InitDb(IConfiguration configuration)
         {
             if(!File.Exists("NumbersDb.sqlite"))
             {
                 // this creates a zero-byte file
                 SQLiteConnection.CreateFile("NumbersDb.sqlite");
             }
-
-            string connectionString = "Data Source=NumbersDb.sqlite;Version=3;";
+            var connectionString = new SqliteConnectionStringBuilder(configuration.GetConnectionString("Default")).ToString();
             SQLiteConnection m_dbConnection = new SQLiteConnection(connectionString);
             m_dbConnection.Open();
 
@@ -25,7 +25,6 @@ namespace TechAptV1.Client.Utilities
                         );
                         CREATE INDEX IF NOT EXISTS numbers_idx ON Number (Value, IsPrime);
 ";
-            // you could also write sql = "CREATE TABLE IF NOT EXISTS highscores ..."
             SQLiteCommand command = new SQLiteCommand(sql, m_dbConnection);
             command.ExecuteNonQuery();
             m_dbConnection.Close();

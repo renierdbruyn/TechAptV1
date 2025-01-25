@@ -5,7 +5,7 @@
 @inject IJSRuntime JS
 
 <h3>Results</h3>
-<p>The table shows the top N numbers generated. The download XML and Binary feature allows you to download the entire data set</p>
+<p>The table shows the top 20 numbers generated. The download XML and Binary feature allows you to download the entire data set</p>
 
 <div>
     <button class="btn btn-primary" disabled="@_isLoading" @onclick="(async () => await this.DownloadXml())">Download XML</button>
