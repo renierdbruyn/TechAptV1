@@ -3,6 +3,7 @@
 using Serilog;
 using TechAptV1.Client.Components;
 using TechAptV1.Client.Services;
+using TechAptV1.Client.Utilities;
 
 namespace TechAptV1.Client
 {
@@ -24,6 +25,7 @@ namespace TechAptV1.Client
                 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
                 builder.Services.AddSingleton<ThreadingService>();
                 builder.Services.AddSingleton<DataService>();
+                SQLiteTools.InitDb();
                 var app = builder.Build();
 
                 // Configure the HTTP request pipeline.
