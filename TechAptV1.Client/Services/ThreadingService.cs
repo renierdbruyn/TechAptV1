@@ -19,17 +19,18 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
     private int _primeNumbers = 0;
     private int _totalNumbers = 0;
 
-    public int _stopLimit = 200_000; //10_000_000
-    public int _evenStart = 50_000; //2_500_000
+    public int _stopLimit = 10_000; //10_000_000
+    public int _evenStart = 2_500; //2_500_000
     public bool _startedProcessing = false;
     [CascadingParameter]
-    public List<Number> _numbersList { get; set; } = new();
+    private List<Number> _numbersList { get; set; } = new();
     //private List<int> _numbersList { get; set; } = new();
 
     [ThreadStatic]
     private static Random _random = new();
 
     private readonly object _lock = new();
+    private static Mutex mut = new Mutex();
 
     public int GetOddNumbers() => _oddNumbers;
     public int GetEvenNumbers() => _evenNumbers;
@@ -54,15 +55,19 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
 
             while (true)
             {
-                lock (_lock)
+                //lock (_lock)
+                //{
+                //mut.WaitOne();
+                if (_numbersList.Count >= _evenStart)
                 {
-                    if (_numbersList.Count >= _evenStart)
-                    {
-                        break;
-                    }
+                    logger.LogInformation($"Even Numbers has started generating");
+                    logger.LogDebug($"_numbersList.Count: {_numbersList.Count}");
+                    break;
                 }
+                //mut.ReleaseMutex();
+
+                //}
             }
-            logger.LogDebug($"_numbersList.Count: {_numbersList.Count}");
             var EvenRng = new Thread(new ThreadStart(GenerateRandomEvenNumbers));
             EvenRng.Start();
 
@@ -94,28 +99,37 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
     public async Task Save()
     {
         logger.LogInformation("Save");
-        throw new NotImplementedException();
+        await dataService.Save(_numbersList);
     }
 
+    /// <summary>
+    /// A method that generates Odd Numbers
+    /// </summary>
     private void GenerateRandomOddNumbers()
     {
         EnsureRandomInstantiated();
 
         while (_numbersList.Count < _stopLimit)
-        //while (_numbersList.Length < _stopLimit)
         {
-            lock (_lock)
+            //lock (_lock)
+            //{
+            mut.WaitOne();
+            try
             {
-                //Random random = new Random();
-                int ans = _random.Next(_stopLimit);
-                if (ans % 2 == 1)
-                {
-                    _numbersList.Add(new() { Value = ans, IsPrime = IsPrime(ans) });
-                    //_numbersList.Add(ans);
-                    _oddNumbers++;
-                    _totalNumbers++;
-                }
+                if (_numbersList.Count >= _stopLimit) { break; }
+                int randomNumber = _random.Next(_stopLimit / 2) * 2 + 1;
+                _numbersList.Add(new() { Value = randomNumber, IsPrime = IsPrime(randomNumber) });
+                _oddNumbers++;
+                _totalNumbers++;
+                //if (randomNumber % 2 == 1)
+                //{
+                //}
             }
+            finally
+            {
+                mut.ReleaseMutex();
+            }
+            //}
         }
     }
 
@@ -124,20 +138,28 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
         EnsureRandomInstantiated();
 
         while (_numbersList.Count < _stopLimit)
-        //while (_numbersList.Length < _stopLimit)
         {
-            lock (_lock)
+            mut.WaitOne();
+            try
             {
-                //Random random = new Random();
-                int ans = _random.Next(_stopLimit);
-                if (ans % 2 == 0)
-                {
-                    _numbersList.Add(new() { Value = ans, IsPrime = IsPrime(ans) });
-                    //_numbersList.Add(ans);
-                    _evenNumbers++;
-                    _totalNumbers++;
-                }
+                //lock (_lock)
+                //{
+                if (_numbersList.Count >= _stopLimit) { break; }
+
+                int randomNumber = _random.Next(_stopLimit / 2) * 2;
+                _numbersList.Add(new() { Value = randomNumber, IsPrime = IsPrime(randomNumber) });
+                _evenNumbers++;
+                _totalNumbers++;
+                //if (randomNumber % 2 == 0)
+                //{
+                //}
             }
+            finally
+            {
+                mut.ReleaseMutex();
+            }
+            //}
+
         }
     }
 
@@ -146,30 +168,49 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
         EnsureRandomInstantiated();
 
         while (_numbersList.Count < _stopLimit)
-        //while (_numbersList.Length < _stopLimit)
         {
-            lock (_lock)
+            //lock (_lock)
+            //{
+            mut.WaitOne();
+            try
             {
-                //Random random = new Random();
-                int ans = _random.Next(_stopLimit);
-                if (IsPrime(ans))
+                if (_numbersList.Count >= _stopLimit) { break; }
+                int randomNumber = _random.Next(_stopLimit);
+                if (IsPrime(randomNumber))
                 {
-                    _numbersList.Add(new() { Value = ans, IsPrime = true });
-                    //_numbersList.Add(ans);
+                    _numbersList.Add(new() { Value = randomNumber, IsPrime = true });
                     _primeNumbers++;
                     _totalNumbers++;
                 }
             }
+            finally
+            {
+                mut.ReleaseMutex();
+            }
+            //}
         }
     }
 
-    private static bool IsPrime(int n)
+    private static bool IsPrime(int number)
     {
-        if (n > 1)
+        if (number <= 1) return false;
+        if (number == 2 || number == 3 || number == 5) return true;
+        if (number % 2 == 0 || number % 3 == 0 || number % 5 == 0) return false;
+
+        var boundary = (int)Math.Floor(Math.Sqrt(number));
+
+        // You can do less work by observing that at this point, all primes 
+        // other than 2 and 3 leave a remainder of either 1 or 5 when divided by 6. 
+        // The other possible remainders have been taken care of.
+        int i = 6; // start from 6, since others below have been handled.
+        while (i <= boundary)
         {
-            return Enumerable.Range(1, n).Where(x => n % x == 0)
-                             .SequenceEqual(new[] { 1, n });
+            if (number % (i + 1) == 0 || number % (i + 5) == 0)
+                return false;
+
+            i += 6;
         }
-        return false;
+
+        return true;
     }
 }

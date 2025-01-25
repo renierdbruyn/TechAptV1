@@ -1,8 +1,10 @@
 ﻿// Copyright © 2025 Always Active Technologies PTY Ltd
 
+using System.Data;
 using System.Data.Common;
 using System.Data.Entity;
 using System.Data.SQLite;
+using System.Reflection.PortableExecutable;
 using System.Runtime.Intrinsics.X86;
 using System.Transactions;
 using System.Xml.Linq;
@@ -42,6 +44,7 @@ public sealed class DataService
     /// <param name="dataList"></param>
     public async Task Save(List<Number> dataList)
     {
+        // we do not set this to false again as we do not want to allow the user to save numerous times
         _isSaving = true;
 
         sqlite.Open();
@@ -68,13 +71,10 @@ public sealed class DataService
                 transaction.Commit();
             }
             sqlite.Close();
-            _isSaving = false;
-
         }
         catch (Exception ex)
         {
             sqlite.Close();
-            _isSaving = false;
         }
 
     }
@@ -84,7 +84,7 @@ public sealed class DataService
     /// </summary>
     /// <param name="count"></param>
     /// <returns></returns>
-    public IEnumerable<Number> Get(int count)
+    public async Task<IEnumerable<Number>> GetAsync(int count)
     {
         this._logger.LogInformation("Get");
         var numberList = new List<Number>();
@@ -97,7 +97,7 @@ public sealed class DataService
             dbCommand.Parameters.AddWithValue("@limit", count);
 
             // populate numberList
-            ExtractNumberValues(numberList, dbCommand);
+            await ExtractNumberValues(numberList, dbCommand, _logger);
 
             sqlite.Close();
 
@@ -115,7 +115,7 @@ public sealed class DataService
     /// Fetch All the records from the SQLite Database
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<Number> GetAll()
+    public async Task<IEnumerable<Number>> GetAllAsync()
     {
         this._logger.LogInformation("GetAll");
         var numberList = new List<Number>();
@@ -125,7 +125,7 @@ public sealed class DataService
             SQLiteCommand dbCommand = new SQLiteCommand(sqlite);
             dbCommand.CommandText = "Select * from Number";
 
-            ExtractNumberValues(numberList, dbCommand);
+            await ExtractNumberValues(numberList, dbCommand, _logger);
 
             sqlite.Close();
 
@@ -143,13 +143,13 @@ public sealed class DataService
     /// </summary>
     /// <param name="numberList"></param>
     /// <param name="dbCommand"></param>
-    private static void ExtractNumberValues(List<Number> numberList, SQLiteCommand dbCommand)
+    private static async Task ExtractNumberValues(List<Number> numberList, SQLiteCommand dbCommand, ILogger<DataService> logger)
     {
-        using (SQLiteDataReader r = dbCommand.ExecuteReader())
+        using (SQLiteDataReader reader = dbCommand.ExecuteReader())
         {
-            while (r.Read())
+            while (await reader.ReadAsync())
             {
-                numberList.Add(new() { Value = r.GetInt32(0), IsPrime = r.GetBoolean(1) });
+                numberList.Add(new() { Value = reader.GetInt32(0), IsPrime = reader.GetBoolean(1) });
             }
         }
     }

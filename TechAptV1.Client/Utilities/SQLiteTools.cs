@@ -22,7 +22,9 @@ namespace TechAptV1.Client.Utilities
             string sql = @"CREATE TABLE IF NOT EXISTS ""Number"" (
                             ""Value"" INTEGER NOT NULL,
                             ""IsPrime"" INTEGER NOT NULL DEFAULT 0
-                        );";
+                        );
+                        CREATE INDEX IF NOT EXISTS numbers_idx ON Number (Value, IsPrime);
+";
             // you could also write sql = "CREATE TABLE IF NOT EXISTS highscores ..."
             SQLiteCommand command = new SQLiteCommand(sql, m_dbConnection);
             command.ExecuteNonQuery();

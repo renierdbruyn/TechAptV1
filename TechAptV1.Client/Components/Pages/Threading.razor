@@ -5,8 +5,8 @@
 <h3>Threading &amp; Data Persistence</h3>
 
 <div>
-    <button class="btn btn-primary" disabled="@IsStartDisabled" @onclick="(async () => await this.Start())">Start</button>
-    <button class="btn btn-primary" disabled="@IsSaveDisabled" @onclick="(async () => await this.Save())">Save</button>
+    <button class="btn btn-primary" disabled="@isStartDisabled" @onclick="(async () => await this.Start())">Start</button>
+    <button class="btn btn-info" disabled="@isSaveDisabled" @onclick="(async () => await this.Save())">Save</button>
 </div>
 <div>
     <hr>
@@ -26,8 +26,8 @@
     [Inject] public required ThreadingService _threadingService { get; set; }
     [Inject] public required DataService _dataService { get; set; }
 
-    private bool IsStartDisabled =>  _threadingService._startedProcessing;
-    private bool IsSaveDisabled => _totalNumbers < _threadingService._stopLimit || _dataService.IsSaving();
+    private bool isStartDisabled =>  _threadingService._startedProcessing;
+    private bool isSaveDisabled => _totalNumbers < _threadingService._stopLimit || _dataService.IsSaving();
     private int _oddNumbers = 0;
     private int _evenNumbers = 0;
     private int _primeNumbers = 0;
@@ -46,7 +46,7 @@
     {
             
         this.Logger.LogInformation("Save");
-        await _dataService.Save(_threadingService._numbersList);
+        await _threadingService.Save();
     }
 
     private void UpdateNumbers()
@@ -67,7 +67,7 @@
             },
             null,
             TimeSpan.Zero,
-            TimeSpan.FromSeconds(2)
+            TimeSpan.FromSeconds(15)
         );
     }
 
@@ -79,3 +79,5 @@
 
 
 }
+
+

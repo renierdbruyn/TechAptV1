@@ -14,6 +14,8 @@ namespace TechAptV1.Client.Services
     public class ExportService
     {
         private readonly DataService _dataService;
+        private bool _isLoading = false;
+        public bool IsLoading() => _isLoading;
         public ExportService(DataService dataService)
         {
             _dataService = dataService;
@@ -22,9 +24,10 @@ namespace TechAptV1.Client.Services
         /// Fetches all data from the numbers table and serialized it as xml.
         /// </summary>
         /// <returns></returns>
-        public byte[] GetXmLBytes()
+        public async Task<byte[]> GetXmLBytesAsync()
         {
-            var data = _dataService.GetAll();
+            _isLoading = true;
+            var data = await _dataService.GetAllAsync();
 
             var numbersXml = data.Select(x => new XElement("Numbers", new XAttribute("Value", x.Value), new XAttribute("IsPrime", x.IsPrime)));
             var bodyXml = new XElement("Numbers", numbersXml);
@@ -35,13 +38,17 @@ namespace TechAptV1.Client.Services
             using (var stream = new StringWriter())
             {
                 serializer.Serialize(stream, data);
+                _isLoading = false;
                 return Encoding.Default.GetBytes(stream.ToString());
             }
         }
 
-        public byte[] GetBinBytes()
+        public async Task<byte[]> GetBinBytesAsync()
         {
-            var data = _dataService.GetAll();
+            _isLoading = true;
+
+            var data = await _dataService.GetAllAsync();
+            _isLoading = false;
             return JsonSerializer.SerializeToUtf8Bytes(data);
         }
     }
