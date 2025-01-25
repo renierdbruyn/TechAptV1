@@ -8,8 +8,8 @@
 <p>The table shows the top N numbers generated. The download XML and Binary feature allows you to download the entire data set</p>
 
 <div>
-    <button class="btn btn-primary" @onclick="(async () => await this.DownloadXml())">Download XML</button>
-    <button class="btn btn-primary" @onclick="(async () => await this.DownloadBinary())">Download Binary</button>
+    <button class="btn btn-primary" disabled="@_isLoading" @onclick="(async () => await this.DownloadXml())">Download XML</button>
+    <button class="btn btn-primary" disabled="@_isLoading" @onclick="(async () => await this.DownloadBinary())">Download Binary</button>
 </div>
 <div>
     <table class="table">
@@ -38,13 +38,21 @@
     [Inject] public required ExportService _exportService { get; set; }
 
     private List<Number> numbers = new ();
-    private bool _isLoading => _exportService.IsLoading();
+    private bool _isLoading { get; set; } = false;
 
     /// <summary>
     /// Fetches all the records, serializes them to XML and downloads the file
     /// </summary>
     private async Task DownloadXml()
     {
+        _isLoading = true;
+        StateHasChanged();
+        await Task.Run(() => RunDownloadXml());
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task RunDownloadXml(){
         this.Logger.LogInformation("DownloadXml");
         var bytes = await _exportService.GetXmLBytesAsync();
         var stream = GetFileStream(bytes);
@@ -67,6 +75,18 @@
     {
         this.Logger.LogInformation("DownloadBinary");
         
+        _isLoading = true;
+        StateHasChanged();
+        await Task.Run(() => RunDownloadBinary());
+        _isLoading = false;
+        StateHasChanged();
+
+    }
+
+    private async Task RunDownloadBinary()
+    {
+        this.Logger.LogInformation("DownloadBinary");
+
         var bytes = await (_exportService.GetBinBytesAsync());
         var stream = GetFileStream(bytes);
         using var streamRef = new DotNetStreamReference(stream: stream);

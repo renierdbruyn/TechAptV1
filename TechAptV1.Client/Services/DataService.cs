@@ -1,14 +1,6 @@
 ﻿// Copyright © 2025 Always Active Technologies PTY Ltd
 
-using System.Data;
-using System.Data.Common;
-using System.Data.Entity;
 using System.Data.SQLite;
-using System.Reflection.PortableExecutable;
-using System.Runtime.Intrinsics.X86;
-using System.Transactions;
-using System.Xml.Linq;
-using AngleSharp.Common;
 using TechAptV1.Client.Models;
 
 namespace TechAptV1.Client.Services;
@@ -44,9 +36,6 @@ public sealed class DataService
     /// <param name="dataList"></param>
     public async Task Save(List<Number> dataList)
     {
-        // we do not set this to false again as we do not want to allow the user to save numerous times
-        _isSaving = true;
-
         sqlite.Open();
         try
         {
@@ -104,8 +93,11 @@ public sealed class DataService
         }
         catch (Exception ex)
         {
-            sqlite.Close();
 
+        }
+        finally
+        {
+            sqlite.Close();
         }
         return numberList;
 
@@ -133,8 +125,11 @@ public sealed class DataService
         }
         catch (Exception ex)
         {
-            sqlite.Close();
 
+        }
+        finally
+        {
+            sqlite.Close();
         }
         return numberList;
     }

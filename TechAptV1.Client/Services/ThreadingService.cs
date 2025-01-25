@@ -1,8 +1,6 @@
 ﻿// Copyright © 2025 Always Active Technologies PTY Ltd
 
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using TechAptV1.Client.Models;
 
 namespace TechAptV1.Client.Services;
@@ -19,9 +17,11 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
     private int _primeNumbers = 0;
     private int _totalNumbers = 0;
 
-    public int _stopLimit = 10_000; //10_000_000
-    public int _evenStart = 2_500; //2_500_000
+    public int _stopLimit = 10_000_000;
+    public int _evenStart = 2_500_000;
     public bool _startedProcessing = false;
+    private bool _isSaving = false;
+
     [CascadingParameter]
     private List<Number> _numbersList { get; set; } = new();
 
@@ -36,6 +36,7 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
     public int GetPrimeNumbers() => _primeNumbers;
     public int GetTotalNumbers() => _totalNumbers;
     public int GettopLimit() => _stopLimit;
+    public bool IsSaving() => _isSaving;
 
     /// <summary>
     /// Start the random number generation process
@@ -74,6 +75,9 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
         return;
     }
 
+    /// <summary>
+    /// Sort The number list
+    /// </summary>
     private void SortNumberList()
     {
         _numbersList = _numbersList.OrderBy(x => x.Value).ToList();
@@ -92,7 +96,9 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
     public async Task Save()
     {
         logger.LogInformation("Save");
-        await dataService.Save(_numbersList);
+        // we do not set this to false again as we do not want to allow the user to save numerous times
+        _isSaving = true;
+        await Task.Run(() =>  dataService.Save(_numbersList));
     }
 
     /// <summary>
@@ -120,6 +126,9 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
         }
     }
 
+    /// <summary>
+    /// Generate even numbers
+    /// </summary>
     private void GenerateRandomEvenNumbers()
     {
         EnsureRandomInstantiated();
@@ -143,6 +152,9 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
         }
     }
 
+    /// <summary>
+    /// Generate prime numbers
+    /// </summary>
     private void GeneratePrimeNumbers()
     {
         EnsureRandomInstantiated();
@@ -168,6 +180,11 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
         }
     }
 
+    /// <summary>
+    /// Determine if number is a prime
+    /// </summary>
+    /// <param name="number"></param>
+    /// <returns></returns>
     private static bool IsPrime(int number)
     {
         if (number <= 1) return false;

@@ -1,10 +1,7 @@
 ﻿// Copyright © 2025 Always Active Technologies PTY Ltd
 
-using System;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.Json;
-using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using TechAptV1.Client.Models;

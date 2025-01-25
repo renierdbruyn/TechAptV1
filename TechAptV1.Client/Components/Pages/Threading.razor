@@ -1,5 +1,6 @@
 ﻿@page "/threading"
 @implements IDisposable
+@using Humanizer
 @using TechAptV1.Client.Services
 
 <h3>Threading &amp; Data Persistence</h3>
@@ -12,10 +13,10 @@
     <hr>
     <h4>Numbers:</h4>
     <ul>
-        <li>Odd: <strong>@this._oddNumbers</strong></li>
-        <li>Even: <strong>@this._evenNumbers</strong></li>
-        <li>Prime: <strong>@this._primeNumbers</strong></li>
-        <li>Total: <strong>@this._totalNumbers</strong></li>
+        <li>Odd: <strong>@this._oddNumbers.ToMetric()</strong></li>
+        <li>Even: <strong>@this._evenNumbers.ToMetric()</strong></li>
+        <li>Prime: <strong>@this._primeNumbers.ToMetric()</strong></li>
+        <li>Total: <strong>@this._totalNumbers.ToMetric()</strong></li>
     </ul>
     <hr>
 </div>
@@ -27,7 +28,7 @@
     [Inject] public required DataService _dataService { get; set; }
 
     private bool isStartDisabled =>  _threadingService._startedProcessing;
-    private bool isSaveDisabled => _totalNumbers < _threadingService._stopLimit || _dataService.IsSaving();
+    private bool isSaveDisabled => _totalNumbers < _threadingService._stopLimit || _threadingService.IsSaving();
     private int _oddNumbers = 0;
     private int _evenNumbers = 0;
     private int _primeNumbers = 0;
@@ -44,9 +45,10 @@
 
     private async Task Save()
     {
-            
+
         this.Logger.LogInformation("Save");
         await _threadingService.Save();
+        StateHasChanged();
     }
 
     private void UpdateNumbers()
