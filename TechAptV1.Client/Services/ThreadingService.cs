@@ -70,15 +70,15 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
             PrimeRng.Join();
             EvenRng.Join();
             logger.LogDebug($"_numbersList.Count: {_numbersList.Count}");
+            SortNumberList();
         });
 
-        SortNumberList();
         return;
     }
 
     private void SortNumberList()
     {
-        _numbersList.OrderBy(x => x.Value);
+        _numbersList = _numbersList.OrderBy(x => x.Value).ToList();
     }
     private static void EnsureRandomInstantiated()
     {
