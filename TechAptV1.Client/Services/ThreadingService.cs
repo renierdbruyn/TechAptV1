@@ -168,7 +168,7 @@ public sealed class ThreadingService(ILogger<ThreadingService> logger, DataServi
                 int randomNumber = _random.Next(_stopLimit);
                 if (IsPrime(randomNumber))
                 {
-                    _numbersList.Add(new() { Value = randomNumber, IsPrime = true });
+                    _numbersList.Add(new() { Value = -randomNumber, IsPrime = true });
                     _primeNumbers++;
                     _totalNumbers++;
                 }
